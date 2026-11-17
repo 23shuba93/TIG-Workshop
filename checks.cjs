@@ -34,3 +34,32 @@ const sw=fs.readFileSync(__dirname+'/sw.js','utf8'),files=sw.match(/const FILES=
 const manifest=JSON.parse(fs.readFileSync(__dirname+'/manifest.webmanifest'));for(const i of manifest.icons)assert.ok(fs.existsSync(__dirname+'/'+i.src));
 assert.equal(Object.values(D.groups).flatMap(g=>g.grades).length,53);
 console.log('PASS: input validation; table boundaries; interpolation; current/pulse/torch limits; geometry; pass plans 0.5–100 mm; consumption and stale-plan guard; offline assets.');
+// v1.1 regression checks: table 1 filtering and recommendations.
+const C=require('./catalog.js');
+assert.equal(C.rows.length,77);
+assert.equal(new Set(C.rows.map(r=>r.standard+':'+r.code)).size,77);
+let n={...E.defaults(),jointPrep:'two',weldSide:'single'};
+assert.equal(E.designation(n).code,'С17');
+assert.equal(E.designation({...n,s:12}).code,null);
+assert.equal(E.designation({...n,jointPrep:'one'}).code,'С8');
+assert.equal(E.designation({...n,shape:'round',pipeline:true,d:108,s:12}).code,'С17');
+assert.equal(E.designation({...n,shape:'round',pipeline:true,s:3,d:10}).code,null);
+assert.equal(E.designation({...n,shape:'round',pipeline:true,s:2,d:10,jointPrep:'none'}).code,'С2');
+assert.equal(E.designation({...n,group:'al',grade:'АД0'}).candidates.length,0);
+assert.equal(E.designation({...n,process:'ИН'}).candidates.length,0);
+assert.equal(E.designation({...n,shape:'round',pipeline:true,pipeNode:'branch',joint:'corner',jointPrep:'one',branchD:25,branchS:6}).code,'У19');
+assert.equal(E.designation({...n,shape:'round',pipeline:true,pipeNode:'branch',joint:'corner',jointPrep:'one',branchD:10,branchS:6}).code,null);
+assert.equal(E.designation({...n,joint:'tee',jointPrep:'none',s:30}).code,'Т1');
+const old=E.defaults();for(const k of ['normMode','jointPrep','weldSide','pipeNode','branchD','branchS'])delete old[k];
+assert.equal(E.validate(old).normMode,'auto');
+let rec=E.recommendedElectrode(E.defaults());assert.equal(rec.electrode,'ЭВЛ');assert.equal(rec.diameter,4);
+rec=E.recommendedElectrode({...E.defaults(),rootI:600,fillI:600});assert.equal(rec.diameter,5);
+rec=E.recommendedElectrode({...E.defaults(),pulse:true,peak:1000});assert.ok(rec.error);
+assert.ok(E.recommendedElectrode({...E.defaults(),profile:'manual'}).error);
+assert.ok(E.recommendedElectrode({...E.defaults(),gas:'N2'}).error);
+rec=E.recommendedElectrode({...E.defaults(),group:'al',grade:'АД0',polarity:'AC',profile:'manual',rootI:180,fillI:200,en:75});assert.equal(rec.electrode,'WL15');assert.equal(rec.diameter,2.4);
+assert.equal(E.capacity({...E.defaults(),electrode:'WL15',diameter:2.4,limitMode:'guide'}).max,200);
+assert.equal(E.capacity({...E.defaults(),electrode:'WL15',diameter:2.4,limitMode:'guide',gas:'He'}).max,null);
+assert.equal(E.capacity({...E.defaults(),group:'al',grade:'АД0',polarity:'AC',electrode:'WL15',diameter:2.4,limitMode:'guide',en:70}).max,null);
+assert.ok(E.recommendedElectrode({...E.defaults(),profile:'manual',rootI:220,fillI:220}).error); // No fabricated interpolation through 200–250 A gap.
+console.log('PASS v1.1: 77 unique types; process/scope/branch/thickness filters; migration; electrode recommendation; guide boundaries.');
