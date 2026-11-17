@@ -1,8 +1,8 @@
 'use strict';
-const VERSION='tig-1.1.2';
+const VERSION='tig-1.2.0-r2';
 const PREFIX='tig-workshop:'+self.registration.scope+':';
 const CACHE=PREFIX+VERSION;
-const FILES=['index.html','style.css','data.js','catalog.js','engine.js','app.js','offline.js','manifest.webmanifest','icon-192.png','icon-512.png','maskable-512.png','apple-touch-icon.png'];
+const FILES=['index.html','style.css','data.js','catalog.js','engine.js','auto.js','app.js','offline.js','manifest.webmanifest','icon-192.png','icon-512.png','maskable-512.png','apple-touch-icon.png'];
 const URLS=FILES.map(f=>new URL(f,self.registration.scope).href);
 self.addEventListener('install',event=>event.waitUntil((async()=>{const cache=await caches.open(CACHE);await cache.addAll(URLS.map(url=>new Request(url,{cache:'reload'})));})()));
 self.addEventListener('activate',event=>event.waitUntil((async()=>{for(const key of await caches.keys())if(key.startsWith(PREFIX)&&key!==CACHE)await caches.delete(key);await self.clients.claim();})()));

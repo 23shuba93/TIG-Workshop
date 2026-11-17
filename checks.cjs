@@ -63,3 +63,18 @@ assert.equal(E.capacity({...E.defaults(),electrode:'WL15',diameter:2.4,limitMode
 assert.equal(E.capacity({...E.defaults(),group:'al',grade:'АД0',polarity:'AC',electrode:'WL15',diameter:2.4,limitMode:'guide',en:70}).max,null);
 assert.ok(E.recommendedElectrode({...E.defaults(),profile:'manual',rootI:220,fillI:220}).error); // No fabricated interpolation through 200–250 A gap.
 console.log('PASS v1.1: 77 unique types; process/scope/branch/thickness filters; migration; electrode recommendation; guide boundaries.');
+const A=require('./auto.js');
+let a=A.apply(E.defaults()).state;assert.equal(a.rootI,140);assert.equal(a.filler,'Св-08Г2С');
+a=A.apply({...E.defaults(),shape:'round',joint:'ring',d:108,position:'К1'}).state;
+assert.equal(a.rootI,140);assert.ok(A.reference(a).estimate);assert.equal(A.reference(a).profile.back,false);
+a.speed=100;a.passes=E.makePlan(a);a.planStamp=E.stamp(a);assert.ok(E.consumption(a).gas>0);assert.ok(Math.abs(a.passes[0].length-Math.PI*108)<1e-6);
+a=A.apply({...a,mode_regime:'manual',rootI:90,fillI:110}).state;assert.equal(a.rootI,90);
+assert.equal(A.apply({...E.defaults(),grade:'09Г2С'}).state.filler,'');
+assert.equal(A.apply({...E.defaults(),s:100}).state.rootI,null);
+assert.equal(A.apply({...E.defaults(),mode_filler:'manual',filler:'Моя присадка'}).state.filler,'Моя присадка');
+assert.equal(E.area({...E.defaults(),geometry:'custom'}),null);
+assert.throws(()=>E.makePlan({...E.defaults(),geometry:'custom'}));
+let legacy=E.defaults();for(const k of Object.keys(legacy).filter(k=>k.startsWith('mode_')))delete legacy[k];
+assert.equal(E.validate(legacy).mode_regime,'manual');
+assert.ok(!fs.readFileSync(__dirname+'/app.js','utf8').includes("field('customArea'"));
+console.log('PASS v1.2: pipe preliminary calculation, manual overrides, filler, unsupported ranges, migration, removed custom area.');
