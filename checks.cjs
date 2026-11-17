@@ -38,7 +38,7 @@ console.log('PASS: input validation; table boundaries; interpolation; current/pu
 const C=require('./catalog.js');
 assert.equal(C.rows.length,77);
 assert.equal(new Set(C.rows.map(r=>r.standard+':'+r.code)).size,77);
-let n={...E.defaults(),jointPrep:'two',weldSide:'single'};
+let n={...E.defaults(),pipeSpec:'document',pipeMax:40,pipeDocument:'Test specification',jointPrep:'two',weldSide:'single'};
 assert.equal(E.designation(n).code,'С17');
 assert.equal(E.designation({...n,s:12}).code,null);
 assert.equal(E.designation({...n,jointPrep:'one'}).code,'С8');
@@ -65,11 +65,11 @@ assert.ok(E.recommendedElectrode({...E.defaults(),profile:'manual',rootI:220,fil
 console.log('PASS v1.1: 77 unique types; process/scope/branch/thickness filters; migration; electrode recommendation; guide boundaries.');
 const A=require('./auto.js');
 let a=A.apply(E.defaults()).state;assert.equal(a.rootI,140);assert.equal(a.filler,'Св-08Г2С');
-a=A.apply({...E.defaults(),shape:'round',joint:'ring',d:108,position:'К1'}).state;
-assert.equal(a.rootI,140);assert.ok(A.reference(a).estimate);assert.equal(A.reference(a).profile.back,false);
-a.speed=100;a.passes=E.makePlan(a);a.planStamp=E.stamp(a);assert.ok(E.consumption(a).gas>0);assert.ok(Math.abs(a.passes[0].length-Math.PI*108)<1e-6);
+a=A.apply({...E.defaults(),shape:'round',joint:'ring',d:57,position:'К1',weldSide:'single'}).state;
+assert.equal(a.rootI,85);assert.ok(A.reference(a).pipe);assert.deepEqual(A.reference(a).fill,[70,100]);
+a.speed=100;a.passes=E.makePlan(a);a.planStamp=E.stamp(a);assert.ok(E.consumption(a).gas>0);assert.ok(Math.abs(a.passes[0].length-Math.PI*57)<1e-6);
 a=A.apply({...a,mode_regime:'manual',rootI:90,fillI:110}).state;assert.equal(a.rootI,90);
-assert.equal(A.apply({...E.defaults(),grade:'09Г2С'}).state.filler,'');
+assert.equal(A.apply({...E.defaults(),grade:'09Г2С'}).state.filler,'Св-08Г2С');
 assert.equal(A.apply({...E.defaults(),s:100}).state.rootI,null);
 assert.equal(A.apply({...E.defaults(),mode_filler:'manual',filler:'Моя присадка'}).state.filler,'Моя присадка');
 assert.equal(E.area({...E.defaults(),geometry:'custom'}),null);
@@ -78,3 +78,15 @@ let legacy=E.defaults();for(const k of Object.keys(legacy).filter(k=>k.startsWit
 assert.equal(E.validate(legacy).mode_regime,'manual');
 assert.ok(!fs.readFileSync(__dirname+'/app.js','utf8').includes("field('customArea'"));
 console.log('PASS v1.2: pipe preliminary calculation, manual overrides, filler, unsupported ranges, migration, removed custom area.');
+
+const R=require('./evidence.js');
+for(const [d,max] of [[25,8],[57,13],[108,28],[219,50],[325,75],[530,75]])assert.equal(R.pipeLimit({...E.defaults(),shape:'round',d}).max,max);
+assert.ok(R.pipeLimit({...E.defaults(),shape:'round',d:1020}).errors.length);
+assert.ok(R.pipeLimit({...E.defaults(),shape:'round',d:57,s:14}).errors.length);
+assert.ok(A.reference({...a,d:108,s:6}).error);
+assert.equal(A.reference({...a,d:108,s:12}).fill,null);
+for(const g of Object.values(D.groups).flatMap(g=>g.grades))assert.ok(D.fillers[g]||R.fillers[g],g);
+assert.equal(A.apply({...E.defaults(),group:'cu',grade:'М1к'}).state.filler,'');
+assert.equal(A.apply({...E.defaults(),group:'al',grade:'АЛ9'}).state.filler,'СвАК5');
+assert.equal(A.apply({...E.defaults(),group:'al',grade:'Д16'}).state.filler,'');
+console.log('PASS v1.3: diameter-dependent wall limits, pipe source boundaries, root-only profile, coverage of all 53 grades, conditional filler selection.');
