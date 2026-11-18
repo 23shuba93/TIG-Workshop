@@ -90,3 +90,8 @@ assert.equal(A.apply({...E.defaults(),group:'cu',grade:'М1к'}).state.filler,''
 assert.equal(A.apply({...E.defaults(),group:'al',grade:'АЛ9'}).state.filler,'СвАК5');
 assert.equal(A.apply({...E.defaults(),group:'al',grade:'Д16'}).state.filler,'');
 console.log('PASS v1.3: diameter-dependent wall limits, pipe source boundaries, root-only profile, coverage of all 53 grades, conditional filler selection.');
+
+assert.equal(R.pipeRegime({...a,weldSide:'any'}).needsWeldSide,true);
+assert.equal(R.pipeRegime({...a,weldSide:'back'}).needsWeldSide,false);
+assert.ok(R.pipeRegime({...a,weldSide:'single'}).pipe);
+console.log('PASS v1.3.1: explicit pipe-side selection; no silent override of backing choice.');

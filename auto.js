@@ -36,7 +36,7 @@ function apply(input){
   if(r.pipe){s.rootI=(r.root[0]+r.root[1])/2;s.fillI=r.fill?(r.fill[0]+r.fill[1])/2:null;s.fillerRoot=s.fillerFill=2;messages.regime=r.scope+' '+r.warning;}
   else if(r.values){s.rootI=s.fillI=Math.round((r.values[1]+r.values[2])/2);if(r.values[5]!==null)s.flow=(r.values[5]+r.values[6])/2;if(r.values[4]!==null)s.fillerRoot=s.fillerFill=Math.round(r.values[4]*10)/10;
   messages.regime=r.warning||'Общий ориентир таблицы. Отдельные проверенные режимы корня и заполнения источником не заданы.';}
-  else {s.rootI=s.fillI=null;messages.regime=r.error+' Для продолжения используйте ручной режим.';}
+  else {s.rootI=s.fillI=null;messages.regime=r.error+(r.needsWeldSide?'':' Для продолжения используйте ручной режим.');}
  }
  if(mode(s,'filler')==='auto'){
   const c=candidates(s);s.filler=s.process==='ИН'?'':c[0]||'';

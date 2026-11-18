@@ -1,6 +1,6 @@
 'use strict';
 (()=>{const status=document.querySelector('#offline');let reg,promptEvent,working=false,reloadForUpdate=false;
-const files=['index.html','style.css','data.js','catalog.js','evidence.js','engine.js','auto.js','app.js','offline.js','manifest.webmanifest','icon-192.png','icon-512.png','maskable-512.png','apple-touch-icon.png','sw.js'];
+const files=['index.html','style.css','quick.css','quick.js','data.js','catalog.js','evidence.js','engine.js','auto.js','app.js','offline.js','manifest.webmanifest','icon-192.png','icon-512.png','maskable-512.png','apple-touch-icon.png','sw.js'];
 const set=(text,kind='')=>{status.textContent=text;status.className='status '+kind;};
 const timeout=(promise,ms,message)=>new Promise((resolve,reject)=>{const t=setTimeout(()=>reject(Error(message)),ms);promise.then(x=>{clearTimeout(t);resolve(x);},e=>{clearTimeout(t);reject(e);});});
 async function cacheStatus(worker=navigator.serviceWorker?.controller){if(!worker)return false;try{return await timeout(new Promise(resolve=>{const ch=new MessageChannel();ch.port1.onmessage=e=>{ch.port1.close();resolve(!!e.data.ready);};worker.postMessage({type:'CACHE_STATUS'},[ch.port2]);}),5000,'Кэш не ответил');}catch{return false;}}
