@@ -1,10 +1,10 @@
 'use strict';
-const VERSION='tig-1.4.0-final';
+const VERSION='tig-2.1.0';
 const PREFIX='tig-workshop:'+self.registration.scope+':';
 const CACHE=PREFIX+VERSION;
-const FILES=['index.html','style.css','quick.css','quick.js','data.js','catalog.js','evidence.js','engine.js','auto.js','app.js','offline.js','manifest.webmanifest','icon-192.png','icon-512.png','maskable-512.png','apple-touch-icon.png'];
+const FILES=['index.html','expert.html','easy.css','rd-start.webp','rd-process.webp','rd-calculator.webp','rd-key.webp','rd-sheet.webp','rd-round.webp','rd-square.webp','rd-rect.webp','rd-butt.webp','rd-tee.webp','rd-corner.webp','rd-lap.webp','rd-pdf.webp','rd-ring.webp','easy.js','easy-engine.js','style.css','quick.css','quick.js','data.js','catalog.js','evidence.js','engine.js','auto.js','app.js','offline.js','manifest.webmanifest','icon-192.png','icon-512.png','maskable-512.png','apple-touch-icon.png'];
 const URLS=FILES.map(f=>new URL(f,self.registration.scope).href);
 self.addEventListener('install',event=>event.waitUntil((async()=>{const cache=await caches.open(CACHE);await cache.addAll(URLS.map(url=>new Request(url,{cache:'reload'})));})()));
 self.addEventListener('activate',event=>event.waitUntil((async()=>{for(const key of await caches.keys())if(key.startsWith(PREFIX)&&key!==CACHE)await caches.delete(key);await self.clients.claim();})()));
 self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')event.waitUntil(self.skipWaiting());if(event.data?.type==='CACHE_STATUS')event.waitUntil((async()=>{const c=await caches.open(CACHE);let ok=true;for(const u of URLS)if(!await c.match(u))ok=false;event.ports[0]?.postMessage({ready:ok,version:VERSION});})());});
-self.addEventListener('fetch',event=>{const req=event.request,u=new URL(req.url);if(req.method!=='GET'||u.origin!==self.location.origin||!u.href.startsWith(self.registration.scope))return;if(req.mode==='navigate'){event.respondWith((async()=>{const c=await caches.open(CACHE);return await c.match(new URL('index.html',self.registration.scope).href)||fetch(req);})());return;}if(URLS.includes(u.href))event.respondWith((async()=>{const c=await caches.open(CACHE);return await c.match(req)||fetch(req);})());});
+self.addEventListener('fetch',event=>{const req=event.request,u=new URL(req.url);if(req.method!=='GET'||u.origin!==self.location.origin||!u.href.startsWith(self.registration.scope))return;if(req.mode==='navigate'){event.respondWith((async()=>{const c=await caches.open(CACHE);return await c.match(new URL(u.pathname.endsWith('expert.html')?'expert.html':'index.html',self.registration.scope).href)||fetch(req);})());return;}if(URLS.includes(u.href))event.respondWith((async()=>{const c=await caches.open(CACHE);return await c.match(req)||fetch(req);})());});
